@@ -10,12 +10,12 @@ class TextObject:
         self.bounds = self.get_surface(text_func())
 
     def draw(self, surface, centralized=False):
-        text_furface, self.bounds = self.get_surface(self.text_func())
+        text_surface, self.bounds = self.get_surface(self.text_func())
         if centralized:
             pos = (self.pos[0] - self.bounds.width // 2, self.pos[1])
         else:
             pos = self.pos
-        surface.blit(text_furface, pos)
+        surface.blit(text_surface, pos)
 
     def get_surface(self, text):
         text_surface = self.font.render(text, False, self.color)
