@@ -4,6 +4,10 @@ ball_color = colors.GREEN
 ball_radius = 8
 ball_speed = 3
 
+brick_width = 60
+brick_height = 20
+brick_color = colors.RED1
+
 button_normal_back_color = colors.INDIANRED1
 button_hover_back_color = colors.INDIANRED2
 button_pressed_back_color = colors.INDIANRED3
@@ -18,6 +22,14 @@ menu_offset_x = 20
 menu_offset_y = 300
 
 message_duration = 2
+
+offset_y = brick_height + 10
+row_count = 6
+
+paddle_width = 80
+paddle_height = 20
+paddle_color = colors.ALICEBLUE
+paddle_speed = 6
 
 screen_width = 600
 screen_height = 800

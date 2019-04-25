@@ -72,9 +72,27 @@ class Breakout(Game):
                 padding=5
             )
 
+    def create_paddle(self):
+        paddle = Paddle((c.screen_width - c.paddle_width) // 2,
+                        c.screen_height - c.paddle_height * 2,
+                        c.paddle_width,
+                        c.paddle_height,
+                        c.paddle_color,
+                        c.paddle_speed)
+        self.keydown_handlers[pygame.K_LEFT].append(paddle.handle)
+        self.keydown_handlers[pygame.K_RIGHT].append(paddle.handle)
+        self.keyup_handlers[pygame.K_LEFT].append(paddle.handle)
+        self.keyup_handlers[pygame.K_RIGHT].append(paddle.handle)
+        self.paddle = paddle
+        self.objects.append(self.paddle)
+
     def create_ball(self):
         speed = (random.randint(-2, 2), c.ball_speed)
-        self.ball = Ball(c.screen_width//2, c.screen_height//2, c.ball_radius, c.ball_color, speed)
+        self.ball = Ball(c.screen_width // 2,
+                         c.screen_height // 2,
+                         c.ball_radius,
+                         c.ball_color,
+                         speed)
         self.objects.append(self.ball)
 
     def create_bricks(self):
