@@ -85,6 +85,22 @@ class Breakout(Game):
                 padding=5
             )
 
+    def create_labels(self):
+        self.score_label = TextObject(c.score_offset,
+                                      c.status_offset_y,
+                                      lambda: f'SCORE: {self.score}',
+                                      c.text_color,
+                                      c.font_name,
+                                      c.font_size)
+        self.objects.append(self.score_label)
+        self.lives_label = TextObject(c.lives_offset,
+                                      c.status_offset_y,
+                                      lambda: f'LIVES: {self.lives}',
+                                      c.text_color,
+                                      c.font_name,
+                                      c.font_size)
+        self.objects.append(self.lives_label)
+
     def create_paddle(self):
         paddle = Paddle((c.screen_width - c.paddle_width) // 2,
                         c.screen_height - c.paddle_height * 2,
