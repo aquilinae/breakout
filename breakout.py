@@ -1,4 +1,5 @@
 import colors
+import datetime
 import pygame
 import random
 import time
@@ -76,6 +77,35 @@ class Breakout(Game):
         self.ball = Ball(c.screen_width//2, c.screen_height//2, c.ball_radius, c.ball_color, speed)
         self.objects.append(self.ball)
 
+    def create_bricks(self):
+        w = c.brick_width
+        h = c.brick_height
+        brick_count = c.screen_width // (w + 1)
+        offset_x = (c.screen_width - brick_count * (w + 1)) // 2
+
+        bricks = []
+        for row in range(c.row_count):
+            for col in range(brick_count):
+                effect = None
+                brick_color = c.brick_color
+                index = random.randint(0, 10)
+                if index < len(special_effects):
+                    x = list(special_effects.values())[index]
+                    brick_color = x[0]
+                    effect = x[1:]
+
+                brick = Brick(
+                    offset_x + col * (w + 1),
+                    c.offset_y + row * (h + 1),
+                    w,
+                    h,
+                    brick_color,
+                    effect
+                )
+                bricks.append(brick)
+                self.objects.append(brick)
+            self.bricks = bricks
+
     def handle_ball_collisions(self):
         def intersect(obj, ball):
             edges = dict(
@@ -150,12 +180,25 @@ class Breakout(Game):
                 else:
                     self.ball.speed = (-s[0], s[1])
 
+                if brick.special_effect is not None:
+                    if self.reset_effect is not None:
+                        self.reset_effect(self)
+
+                    self.effect_start_time = datetime.datetime.now()
+                    brick.special_effect[0](self)
+                    self.reset_effect = brick.special_effect[1]
+
     def update(self):
         if not self.bricks:
             self.show_message('YOU WIN!', centralized=True)
             self.is_game_running = False
             self.game_over = True
             return
+
+        if self.reset_effect:
+            if datetime.datetime.now() - self.effect_start_time >= datetime.timedelta(seconds=c.effect_duration):
+                self.reset_effect(self)
+                self.reset_effect = None
 
 def main():
     Breakout().run()
