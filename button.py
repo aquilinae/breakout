@@ -1,9 +1,8 @@
 import pygame
 
-import config as c
-
 from game_object import GameObject
 from text_object import TextObject
+import config as c
 
 
 class Button(GameObject):
@@ -16,11 +15,13 @@ class Button(GameObject):
 
     @property
     def back_color(self):
-        return dict(
-            normal=c.button_normal_back_color,
-            hover=c.button_hover_back_color,
-            pressed=c.button_pressed_back_color
-        )[self.state]
+        return dict(normal=c.button_normal_back_color,
+                    hover=c.button_hover_back_color,
+                    pressed=c.button_pressed_back_color)[self.state]
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, self.back_color, self.bounds)
+        self.text.draw(surface)
 
     def handle_mouse_event(self, type, pos):
         if type == pygame.MOUSEMOTION:
@@ -45,7 +46,3 @@ class Button(GameObject):
         if self.state == 'pressed':
             self.on_click(self)
             self.state = 'hover'
-
-    def draw(self, surface):
-        pygame.draw.rect(surface, self.back_color, self.bounds)
-        self.text.draw(surface)

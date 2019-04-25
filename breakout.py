@@ -1,42 +1,33 @@
-import colors
-import datetime
-import os
-import pygame
 import random
+from datetime import datetime, timedelta
+
+import os
 import time
+import pygame
+from pygame.rect import Rect
 
 import config as c
-
 from ball import Ball
 from brick import Brick
 from button import Button
 from game import Game
 from paddle import Paddle
 from text_object import TextObject
-
+import colors
 
 special_effects = dict(
-    long_paddle=(
-        colors.ORANGE,
-        lambda g: g.paddle.bounds.inflate_ip(c.paddle_width//2, 0),
-        lambda g: g.paddle.bounds.inflate_ip(-c.paddle_width//2, 0),
-    ),
-    slow_ball=(
-        colors.AQUAMARINE2,
-        lambda g: g.change_ball_speed(-1),
-        lambda g: g.change_ball_speed(1),
-    ),
-    tripple_points=(
-        colors.DARKSEAGREEN4,
-        lambda g: g.set_points_per_brick(3),
-        lambda g: g.set_points_per_brick(1),
-    ),
-    extra_file=(
-        colors.GOLD1,
-        lambda g: g.add_life(),
-        lambda g: None,
-    ),
-)
+    long_paddle=(colors.ORANGE,
+                 lambda g: g.paddle.bounds.inflate_ip(c.paddle_width // 2, 0),
+                 lambda g: g.paddle.bounds.inflate_ip(-c.paddle_width // 2, 0)),
+    slow_ball=(colors.AQUAMARINE2,
+               lambda g: g.change_ball_speed(-1),
+               lambda g: g.change_ball_speed(1)),
+    tripple_points=(colors.DARKSEAGREEN4,
+                    lambda g: g.set_points_per_brick(3),
+                    lambda g: g.set_points_per_brick(1)),
+    extra_life=(colors.GOLD1,
+                lambda g: g.add_life(),
+                lambda g: None))
 
 assert os.path.isfile('sound_effects/brick_hit.wav')
 
@@ -67,13 +58,6 @@ class Breakout(Game):
     def change_ball_speed(self, dy):
         self.ball.speed = (self.ball.speed[0], self.ball.speed[1] + dy)
 
-    def show_message(self, text, color=colors.WHITE, font_name='Arial', font_size=20, centralized=False):
-        message = TextObject(c.screen_width//2, c.screen_height//2, lambda: text, color, font_name, font_size)
-        self.draw()
-        message.draw(self.surface, centralized)
-        pygame.display.update()
-        time.sleep(c.message_duration)
-
     def create_menu(self):
         def on_play(button):
             for b in self.menu_buttons:
@@ -85,17 +69,26 @@ class Breakout(Game):
         def on_quit(button):
             self.game_over = True
             self.is_game_running = False
+            self.game_over = True
 
-        for i, (text, handler) in enumerate((('PLAY', on_play), ('QUIT', on_quit))):
-            b = Button(
-                c.menu_offset_x,
-                c.menu_offset_y + (c.menu_button_h+5) * i,
-                c.menu_button_w,
-                c.menu_button_h,
-                text,
-                handler,
-                padding=5
-            )
+        for i, (text, click_handler) in enumerate((('PLAY', on_play), ('QUIT', on_quit))):
+            b = Button(c.menu_offset_x,
+                       c.menu_offset_y + (c.menu_button_h + 5) * i,
+                       c.menu_button_w,
+                       c.menu_button_h,
+                       text,
+                       click_handler,
+                       padding=5)
+            self.objects.append(b)
+            self.menu_buttons.append(b)
+            self.mouse_handlers.append(b.handle_mouse_event)
+
+    def create_objects(self):
+        self.create_bricks()
+        self.create_paddle()
+        self.create_ball()
+        self.create_labels()
+        self.create_menu()
 
     def create_labels(self):
         self.score_label = TextObject(c.score_offset,
@@ -113,32 +106,28 @@ class Breakout(Game):
                                       c.font_size)
         self.objects.append(self.lives_label)
 
+    def create_ball(self):
+        speed = (random.randint(-2, 2), c.ball_speed)
+        self.ball = Ball(c.screen_width // 2,
+                         c.screen_height // 2,
+                         c.ball_radius,
+                         c.ball_color,
+                         speed)
+        self.objects.append(self.ball)
+
     def create_paddle(self):
-        paddle = Paddle(
-            (c.screen_width - c.paddle_width) // 2,
-            c.screen_height - c.paddle_height * 2,
-            c.paddle_width,
-            c.paddle_height,
-            c.paddle_color,
-            c.paddle_speed
-        )
+        paddle = Paddle((c.screen_width - c.paddle_width) // 2,
+                        c.screen_height - c.paddle_height * 2,
+                        c.paddle_width,
+                        c.paddle_height,
+                        c.paddle_color,
+                        c.paddle_speed)
         self.keydown_handlers[pygame.K_LEFT].append(paddle.handle)
         self.keydown_handlers[pygame.K_RIGHT].append(paddle.handle)
         self.keyup_handlers[pygame.K_LEFT].append(paddle.handle)
         self.keyup_handlers[pygame.K_RIGHT].append(paddle.handle)
         self.paddle = paddle
         self.objects.append(self.paddle)
-
-    def create_ball(self):
-        speed = (random.randint(-2, 2), c.ball_speed)
-        self.ball = Ball(
-            c.screen_width // 2,
-            c.screen_height // 2,
-            c.ball_radius,
-            c.ball_color,
-            speed
-        )
-        self.objects.append(self.ball)
 
     def create_bricks(self):
         w = c.brick_width
@@ -166,19 +155,12 @@ class Breakout(Game):
                 self.objects.append(brick)
         self.bricks = bricks
 
-    def create_objects(self):
-        self.create_bricks()
-        self.create_paddle()
-        self.create_ball()
-        self.create_labels()
-        self.create_menu()
-
     def handle_ball_collisions(self):
         def intersect(obj, ball):
-            edges = dict(left=pygame.Rect(obj.left, obj.top, 1, obj.height),
-                         right=pygame.Rect(obj.right, obj.top, 1, obj.height),
-                         top=pygame.Rect(obj.left, obj.top, obj.width, 1),
-                         bottom=pygame.Rect(obj.left, obj.bottom, obj.width, 1))
+            edges = dict(left=Rect(obj.left, obj.top, 1, obj.height),
+                         right=Rect(obj.right, obj.top, 1, obj.height),
+                         top=Rect(obj.left, obj.top, obj.width, 1),
+                         bottom=Rect(obj.left, obj.bottom, obj.width, 1))
             collisions = set(edge for edge, rect in edges.items() if ball.bounds.colliderect(rect))
             if not collisions:
                 return None
@@ -256,7 +238,7 @@ class Breakout(Game):
                     self.reset_effect(self)
 
                 # Trigger special effect
-                self.effect_start_time = datetime.datetime.now()
+                self.effect_start_time = datetime.now()
                 brick.special_effect[0](self)
                 # Set current reset effect function
                 self.reset_effect = brick.special_effect[1]
@@ -270,13 +252,14 @@ class Breakout(Game):
             self.show_message('GET READY!', centralized=True)
 
         if not self.bricks:
-            self.show_message('YOU WIN!', centralized=True)
+            self.show_message('YOU WIN!!!', centralized=True)
             self.is_game_running = False
             self.game_over = True
             return
 
+        # Reset special effect if needed
         if self.reset_effect:
-            if datetime.datetime.now() - self.effect_start_time >= datetime.timedelta(seconds=c.effect_duration):
+            if datetime.now() - self.effect_start_time >= timedelta(seconds=c.effect_duration):
                 self.reset_effect(self)
                 self.reset_effect = None
 
@@ -285,6 +268,13 @@ class Breakout(Game):
 
         if self.game_over:
             self.show_message('GAME OVER!', centralized=True)
+
+    def show_message(self, text, color=colors.WHITE, font_name='Arial', font_size=20, centralized=False):
+        message = TextObject(c.screen_width // 2, c.screen_height // 2, lambda: text, color, font_name, font_size)
+        self.draw()
+        message.draw(self.surface, centralized)
+        pygame.display.update()
+        time.sleep(c.message_duration)
 
 
 def main():
