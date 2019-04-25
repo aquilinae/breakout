@@ -174,13 +174,11 @@ class Breakout(Game):
 
     def handle_ball_collisions(self):
         def intersect(obj, ball):
-            edges = dict(
-                left=pygame.Rect(obj.left, obj.top, 1, obj.height),
-                right=pygame.Rect(obj.right, obj.top, 1, obj.height),
-                top=pygame.Rect(obj.left, obj.bottom, obj.width, 1),
-                bottom=pygame.Rect(obj.left, obj.bottom, obj.width, 1)
-            )
-            collisions = set(edge for edge in edges.items() if ball.bounds.colliderect(rect))
+            edges = dict(left=pygame.Rect(obj.left, obj.top, 1, obj.height),
+                         right=pygame.Rect(obj.right, obj.top, 1, obj.height),
+                         top=pygame.Rect(obj.left, obj.top, obj.width, 1),
+                         bottom=pygame.Rect(obj.left, obj.bottom, obj.width, 1))
+            collisions = set(edge for edge, rect in edges.items() if ball.bounds.colliderect(rect))
             if not collisions:
                 return None
 
@@ -203,56 +201,64 @@ class Breakout(Game):
                 else:
                     return 'right'
 
-            s = self.ball.speed
-            edge = intersect(self.paddle, self.ball)
-            if edge is not None:
-                self.sound_effects['paddle_hit'].play()
-            if edge == 'top':
-                speed_x = s[0]
-                speed_y = -s[1]
-                if self.paddle.moving_left:
-                    speed_x -= 1
-                elif self.paddle.moving_left:
-                    speed_x += 1
-                self.ball.speed = speed_x, speed_y
-            elif edge in ('left', 'right'):
-                self.ball.speed = (-s[0], s[1])
+        # Hit paddle
+        s = self.ball.speed
+        edge = intersect(self.paddle, self.ball)
+        if edge is not None:
+            self.sound_effects['paddle_hit'].play()
+        if edge == 'top':
+            speed_x = s[0]
+            speed_y = -s[1]
+            if self.paddle.moving_left:
+                speed_x -= 1
+            elif self.paddle.moving_left:
+                speed_x += 1
+            self.ball.speed = speed_x, speed_y
+        elif edge in ('left', 'right'):
+            self.ball.speed = (-s[0], s[1])
 
-            if self.ball.top > c.screen_height:
-                self.lives -= 1
+        # Hit floor
+        if self.ball.top > c.screen_height:
+            self.lives -= 1
             if self.lives == 0:
                 self.game_over = True
             else:
                 self.create_ball()
 
-            if self.ball.top < 0:
-                self.ball.speed(s[0], -s[1])
+        # Hit ceiling
+        if self.ball.top < 0:
+            self.ball.speed = (s[0], -s[1])
 
-            if self.ball.left < 0 or self.ball.right > c.screen_width:
+        # Hit wall
+        if self.ball.left < 0 or self.ball.right > c.screen_width:
+            self.ball.speed = (-s[0], s[1])
+
+        # Hit brick
+        for brick in self.bricks:
+            edge = intersect(brick, self.ball)
+            if not edge:
+                continue
+
+            self.sound_effects['brick_hit'].play()
+            self.bricks.remove(brick)
+            self.objects.remove(brick)
+            self.score += self.points_per_brick
+
+            if edge in ('top', 'bottom'):
+                self.ball.speed = (s[0], -s[1])
+            else:
                 self.ball.speed = (-s[0], s[1])
 
-            for brick in self.bricks:
-                edge = intersect(brick, self.ball)
-                if not edge:
-                    continue
+            if brick.special_effect is not None:
+                # Reset previous effect if any
+                if self.reset_effect is not None:
+                    self.reset_effect(self)
 
-                self.sound_effects['brick_hit'].play()
-                self.bricks.remove(brick)
-                self.objects.remove(brick)
-                self.score += self.points_per_brick
-
-                if edge in ('top', 'bottom'):
-                    self.ball.speed = (s[0], -s[1])
-                else:
-                    self.ball.speed = (-s[0], s[1])
-
-                if brick.special_effect is not None:
-                    if self.reset_effect is not None:
-                        self.reset_effect(self)
-
-                    self.effect_start_time = datetime.datetime.now()
-                    brick.special_effect[0](self)
-                    self.reset_effect = brick.special_effect[1]
+                # Trigger special effect
+                self.effect_start_time = datetime.datetime.now()
+                brick.special_effect[0](self)
+                # Set current reset effect function
+                self.reset_effect = brick.special_effect[1]
 
     def update(self):
         if not self.is_game_running:
