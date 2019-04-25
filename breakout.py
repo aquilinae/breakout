@@ -18,8 +18,8 @@ from text_object import TextObject
 special_effects = dict(
     long_paddle=(
         colors.ORANGE,
-        lambda g: g.paddle.bounds.inflate_ip(c.paddle_width // 2, 0),
-        lambda g: g.paddle.bounds.inflate_ip(-c.paddle_width // 2, 0),
+        lambda g: g.paddle.bounds.inflate_ip(c.paddle_width//2, 0),
+        lambda g: g.paddle.bounds.inflate_ip(-c.paddle_width//2, 0),
     ),
     slow_ball=(
         colors.AQUAMARINE2,
@@ -114,12 +114,14 @@ class Breakout(Game):
         self.objects.append(self.lives_label)
 
     def create_paddle(self):
-        paddle = Paddle((c.screen_width - c.paddle_width) // 2,
-                        c.screen_height - c.paddle_height * 2,
-                        c.paddle_width,
-                        c.paddle_height,
-                        c.paddle_color,
-                        c.paddle_speed)
+        paddle = Paddle(
+            (c.screen_width - c.paddle_width) // 2,
+            c.screen_height - c.paddle_height * 2,
+            c.paddle_width,
+            c.paddle_height,
+            c.paddle_color,
+            c.paddle_speed
+        )
         self.keydown_handlers[pygame.K_LEFT].append(paddle.handle)
         self.keydown_handlers[pygame.K_RIGHT].append(paddle.handle)
         self.keyup_handlers[pygame.K_LEFT].append(paddle.handle)
@@ -129,11 +131,13 @@ class Breakout(Game):
 
     def create_ball(self):
         speed = (random.randint(-2, 2), c.ball_speed)
-        self.ball = Ball(c.screen_width // 2,
-                         c.screen_height // 2,
-                         c.ball_radius,
-                         c.ball_color,
-                         speed)
+        self.ball = Ball(
+            c.screen_width // 2,
+            c.screen_height // 2,
+            c.ball_radius,
+            c.ball_color,
+            speed
+        )
         self.objects.append(self.ball)
 
     def create_bricks(self):
@@ -149,21 +153,18 @@ class Breakout(Game):
                 brick_color = c.brick_color
                 index = random.randint(0, 10)
                 if index < len(special_effects):
-                    x = list(special_effects.values())[index]
-                    brick_color = x[0]
-                    effect = x[1:]
+                    brick_color, start_effect_func, reset_effect_func = list(special_effects.values())[index]
+                    effect = start_effect_func, reset_effect_func
 
-                brick = Brick(
-                    offset_x + col * (w + 1),
-                    c.offset_y + row * (h + 1),
-                    w,
-                    h,
-                    brick_color,
-                    effect
-                )
+                brick = Brick(offset_x + col * (w + 1),
+                              c.offset_y + row * (h + 1),
+                              w,
+                              h,
+                              brick_color,
+                              effect)
                 bricks.append(brick)
                 self.objects.append(brick)
-            self.bricks = bricks
+        self.bricks = bricks
 
     def create_objects(self):
         self.create_bricks()
