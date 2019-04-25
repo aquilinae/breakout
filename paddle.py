@@ -13,3 +13,9 @@ class Paddle(GameObject):
 
     def draw(self, surface):
         pygame.draw.rect(surface, self.color, self.bounds)
+
+    def handle(self, key):
+        if key == pygame.K_LEFT:
+            self.moving_left = not self.moving_left
+        else:
+            self.moving_right = not self.moving_right
