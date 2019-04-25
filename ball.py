@@ -12,3 +12,6 @@ class Ball(GameObject):
 
     def draw(self, surface):
         pygame.draw.circle(surface, self.color, self.center, self.radius)
+
+    def update(self):
+        super().update()
