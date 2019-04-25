@@ -1,5 +1,6 @@
 import colors
 import pygame
+import random
 import time
 
 import config as c
@@ -15,11 +16,16 @@ from text_object import TextObject
 class Breakout(Game):
 
     def show_message(self, text, color=colors.WHITE, font_name='Arial', font_size=20, centralized=False):
-        message = TextObject(c.screen_width // 2, c.screen_height // 2, lambda: text, color, font_name, font_size)
+        message = TextObject(c.screen_width//2, c.screen_height//2, lambda: text, color, font_name, font_size)
         self.draw()
         message.draw(self.surface, centralized)
         pygame.display.update()
         time.sleep(c.message_duration)
+
+    def create_ball(self):
+        speed = (random.randint(-2, 2), c.ball_speed)
+        self.ball = Ball(c.screen_width//2, c.screen_height//2, c.ball_radius, c.ball_color, speed)
+        self.objects.append(self.ball)
 
 
 def main():
