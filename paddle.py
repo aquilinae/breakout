@@ -1,7 +1,6 @@
 import pygame
 
 import config as c
-
 from game_object import GameObject
 
 
@@ -24,7 +23,7 @@ class Paddle(GameObject):
 
     def update(self):
         if self.moving_left:
-            dx = -min(self.offset, self.left)
+            dx = -(min(self.offset, self.left))
         elif self.moving_right:
             dx = min(self.offset, c.screen_width - self.right)
         else:
