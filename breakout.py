@@ -22,6 +22,29 @@ class Breakout(Game):
         pygame.display.update()
         time.sleep(c.message_duration)
 
+    def create_menu(self):
+        def on_play(button):
+            for b in self.menu_buttons:
+                self.objects.remove(b)
+
+            self.is_game_running = True
+            self.start_level = True
+
+        def on_quit(button):
+            self.game_over = True
+            self.is_game_running = False
+
+        for i, (text, handler) in enumerate((('PLAY', on_play), ('QUIT', on_quit))):
+            b = Button(
+                c.menu_offset_x,
+                c.menu_offset_y + (c.menu_button_h+5) * i,
+                c.menu_button_w,
+                c.menu_button_h,
+                text,
+                handler,
+                padding=5
+            )
+
     def create_ball(self):
         speed = (random.randint(-2, 2), c.ball_speed)
         self.ball = Ball(c.screen_width//2, c.screen_height//2, c.ball_radius, c.ball_color, speed)
