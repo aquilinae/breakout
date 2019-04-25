@@ -123,6 +123,12 @@ class Breakout(Game):
                 else:
                     self.ball.speed = (-s[0], s[1])
 
+    def update(self):
+        if not self.bricks:
+            self.show_message('YOU WIN!', centralized=True)
+            self.is_game_running = False
+            self.game_over = True
+            return
 
 def main():
     Breakout().run()
