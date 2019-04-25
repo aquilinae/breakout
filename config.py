@@ -16,6 +16,8 @@ button_text_color = colors.WHITE
 font_name = 'Arial'
 font_size = 20
 
+initial_lives = 3
+
 menu_button_h = 50
 menu_button_w = 80
 menu_offset_x = 20
