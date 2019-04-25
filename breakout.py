@@ -13,7 +13,33 @@ from paddle import Paddle
 from text_object import TextObject
 
 
+special_effects = dict(
+    long_paddle=(
+        colors.ORANGE,
+        lambda g: g.paddle.bounds.inflate_ip(c.paddle_width // 2, 0),
+        lambda g: g.paddle.bounds.inflate_ip(-c.paddle_width // 2, 0),
+    ),
+    slow_ball=(
+        colors.AQUAMARINE2,
+        lambda g: g.change_ball_speed(-1),
+        lambda g: g.change_ball_speed(1),
+    ),
+    tripple_points=(
+        colors.DARKSEAGREEN4,
+        lambda g: g.set_points_per_brick(3),
+        lambda g: g.set_points_per_brick(1),
+    ),
+    extra_file=(
+        colors.GOLD1,
+        lambda g: g.add_life(),
+        lambda g: None,
+    ),
+)
+
+
 class Breakout(Game):
+    def __init__(self):
+        self.sound_effects = {name: pygame.mixer.Sound(sound) for name, sound in c.sound_effects.items()}
 
     def show_message(self, text, color=colors.WHITE, font_name='Arial', font_size=20, centralized=False):
         message = TextObject(c.screen_width//2, c.screen_height//2, lambda: text, color, font_name, font_size)
@@ -114,6 +140,7 @@ class Breakout(Game):
                 if not edge:
                     continue
 
+                self.sound_effects['brick_hit'].play()
                 self.bricks.remove(brick)
                 self.objects.remove(brick)
                 self.score += self.points_per_brick

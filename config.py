@@ -17,8 +17,14 @@ menu_button_w = 80
 menu_offset_x = 20
 menu_offset_y = 300
 
+message_duration = 2
 
 screen_width = 600
 screen_height = 800
 
-message_duration = 2
+sound_effects = dict(
+    brick_hit='sound_effects/brick_hit.wav',
+    effect_done='sound_effects/effect_done.wav',
+    paddle_hit='sound_effects/paddle_hit.wav',
+    level_complete='sound_effects/level_complete.wav',
+)
