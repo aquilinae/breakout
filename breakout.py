@@ -207,6 +207,13 @@ class Breakout(Game):
                     self.reset_effect = brick.special_effect[1]
 
     def update(self):
+        if not self.is_game_running:
+            return
+
+        if self.start_level:
+            self.start_level = False
+            self.show_message('GET READY!', centralized=True)
+
         if not self.bricks:
             self.show_message('YOU WIN!', centralized=True)
             self.is_game_running = False
@@ -217,6 +224,13 @@ class Breakout(Game):
             if datetime.datetime.now() - self.effect_start_time >= datetime.timedelta(seconds=c.effect_duration):
                 self.reset_effect(self)
                 self.reset_effect = None
+
+        self.handle_ball_collisions()
+        super().update()
+
+        if self.game_over:
+            self.show_message('GAME OVER!', centralized=True)
+
 
 def main():
     Breakout().run()
