@@ -1,5 +1,6 @@
 import colors
 import datetime
+import os
 import pygame
 import random
 import time
@@ -37,6 +38,8 @@ special_effects = dict(
     ),
 )
 
+assert os.path.isfile('sound_effects/brick_hit.wav')
+
 
 class Breakout(Game):
     def __init__(self):
@@ -54,6 +57,15 @@ class Breakout(Game):
         self.is_game_running = False
         self.create_objects()
         self.points_per_brick = 1
+
+    def add_life(self):
+        self.lives += 1
+
+    def set_points_per_brick(self, points):
+        self.points_per_brick = points
+
+    def change_ball_speed(self, dy):
+        self.ball.speed = (self.ball.speed[0], self.ball.speed[1] + dy)
 
     def show_message(self, text, color=colors.WHITE, font_name='Arial', font_size=20, centralized=False):
         message = TextObject(c.screen_width//2, c.screen_height//2, lambda: text, color, font_name, font_size)
@@ -152,6 +164,13 @@ class Breakout(Game):
                 bricks.append(brick)
                 self.objects.append(brick)
             self.bricks = bricks
+
+    def create_objects(self):
+        self.create_bricks()
+        self.create_paddle()
+        self.create_ball()
+        self.create_labels()
+        self.create_menu()
 
     def handle_ball_collisions(self):
         def intersect(obj, ball):
